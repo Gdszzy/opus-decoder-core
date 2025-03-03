@@ -21,15 +21,20 @@ void createWavHeader(WavHeader &h, uint32_t size, int channel, int sampleRate,
   uint32_t bitRate = channel * sampleRate * format;
   uint32_t byteRate = bitRate / 8;
 
-  FILL_ARR(h, 'R', 'I', 'F', 'F', totalDataLen & 0xFF,
-           (totalDataLen >> 8) & 0xFF, (totalDataLen >> 16) & 0xFF,
-           (totalDataLen >> 24) & 0xFF, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ',
-           format, 0, 0, 0, 1, 0, channel, 0, sampleRate & 0xFF,
-           (sampleRate >> 8) & 0xFF, (sampleRate >> 16) & 0xFF,
-           (sampleRate >> 24) & 0xFF, byteRate & 0xFF, (byteRate >> 8) & 0xFF,
-           (byteRate >> 16) & 0xFF, (byteRate >> 24) & 0xFF,
-           (channel * format) / 8, 0, 16, 0, 'd', 'a', 't', 'a', size & 0xFF,
-           (size >> 8) & 0xFF, (size >> 16) & 0xFF, (size >> 24) & 0xFF);
+  FILL_ARR(h, 'R', 'I', 'F', 'F', (uint8_t)(totalDataLen & 0xFF),
+           (uint8_t)((totalDataLen >> 8) & 0xFF),
+           (uint8_t)((totalDataLen >> 16) & 0xFF),
+           (uint8_t)((totalDataLen >> 24) & 0xFF), 'W', 'A', 'V', 'E', 'f', 'm',
+           't', ' ', (uint8_t)(format), 0, 0, 0, 1, 0, (uint8_t)(channel), 0,
+           (uint8_t)(sampleRate & 0xFF), (uint8_t)((sampleRate >> 8) & 0xFF),
+           (uint8_t)((sampleRate >> 16) & 0xFF),
+           (uint8_t)((sampleRate >> 24) & 0xFF), (uint8_t)(byteRate & 0xFF),
+           (uint8_t)((byteRate >> 8) & 0xFF),
+           (uint8_t)((byteRate >> 16) & 0xFF),
+           (uint8_t)((byteRate >> 24) & 0xFF),
+           (uint8_t)((channel * format) / 8), 0, 16, 0, 'd', 'a', 't', 'a',
+           (uint8_t)(size & 0xFF), (uint8_t)((size >> 8) & 0xFF),
+           (uint8_t)((size >> 16) & 0xFF), (uint8_t)((size >> 24) & 0xFF));
 }
 
 void onOpusDecoderDelete(OpusDecoder *decoder) {
