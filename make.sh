@@ -2,7 +2,5 @@
 
 set -e
 
-mkdir -p build
-cd build
-cmake ..
-make -j8
+cmake -B build
+cmake --build build --parallel 8
