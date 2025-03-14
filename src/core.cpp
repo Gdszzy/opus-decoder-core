@@ -49,11 +49,17 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
   int opusChannelSize = opusFrameSize / 2;
   int frameNumber = size / opusFrameSize;
 
+  int decodedFrameNumber = pcmFrameSize / 4;
+
+  // printf("%d\n", decodedFrameNumber);
+
   std::vector<int16_t> pcmLeft(pcmFrameSize / 4); // 640字节 320个uint64
   std::vector<int16_t> pcmRight(pcmFrameSize / 4);
   std::vector<int16_t> pcm(pcmFrameSize / 2);
 
   std::vector<uint8_t> opusBuffer(opusChannelSize);
+
+  // int total = 0;
 
   // write header
   {
@@ -87,11 +93,9 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
     if(!reader) {
       return -2;
     }
-    int decodedFrameSize =
-        opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
-                    pcmLeft.data(), pcmLeft.size(), 0);
-    if(decodedFrameSize < 0) {
-      // return decodedFrameSize;
+    int ret = opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
+                          pcmLeft.data(), pcmLeft.size(), 0);
+    if(ret < 0) {
       std::fill(pcmLeft.begin(), pcmLeft.end(), 0);
     }
     // right
@@ -99,20 +103,20 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
     if(!reader) {
       return -2;
     }
-    decodedFrameSize =
-        opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
-                    pcmRight.data(), pcmRight.size(), 0);
-    if(decodedFrameSize < 0) {
-      // return decodedFrameSize;
+    ret = opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
+                      pcmRight.data(), pcmRight.size(), 0);
+    if(ret < 0) {
       std::fill(pcmRight.begin(), pcmRight.end(), 0);
     }
     // concat
-    for(int j = 0; j < decodedFrameSize; j++) {
+    for(int j = 0; j < decodedFrameNumber; j++) {
       pcm[j * 2] = pcmLeft[j];
       pcm[j * 2 + 1] = pcmRight[j];
     }
     // write
+    // total += pcmFrameSize;
     writer.write((char *)pcm.data(), pcmFrameSize);
+    // printf("write: %d. total: %d\n", pcmFrameSize, total);
   }
   return 0;
 }
