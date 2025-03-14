@@ -88,35 +88,39 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
   auto rightDec = std::unique_ptr<OpusDecoder, void (*)(OpusDecoder *)>(
       rightDecPtr, &onOpusDecoderDelete);
   for(int i = 0; i < frameNumber; i++) {
-    // left
+    // left ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
     if(!reader) {
       return -2;
     }
-    int ret = opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
+    // fill the pcm fuffer with 0
+    std::fill(pcmLeft.begin(), pcmLeft.end(), 0);
+    // ignore the result
+    int ret=opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
                           pcmLeft.data(), pcmLeft.size(), 0);
-    if(ret < 0) {
-      std::fill(pcmLeft.begin(), pcmLeft.end(), 0);
+    if(ret!=decodedFrameNumber){
+      printf("Unexpect left decode result: %d\n",ret);
     }
-    // right
+
+    // right ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
     if(!reader) {
       return -2;
     }
-    ret = opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
+    // fill the pcm fuffer with 0
+    std::fill(pcmRight.begin(), pcmRight.end(), 0);
+    // ignore the result
+    ret=opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
                       pcmRight.data(), pcmRight.size(), 0);
-    if(ret < 0) {
-      std::fill(pcmRight.begin(), pcmRight.end(), 0);
+    if(ret!=decodedFrameNumber){
+      printf("Unexpect right decode result: %d\n",ret);
     }
     // concat
     for(int j = 0; j < decodedFrameNumber; j++) {
       pcm[j * 2] = pcmLeft[j];
       pcm[j * 2 + 1] = pcmRight[j];
     }
-    // write
-    // total += pcmFrameSize;
     writer.write((char *)pcm.data(), pcmFrameSize);
-    // printf("write: %d. total: %d\n", pcmFrameSize, total);
   }
   return 0;
 }
