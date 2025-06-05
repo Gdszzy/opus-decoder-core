@@ -67,12 +67,11 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
 
   int error;
   // left
-  OpusDecoder *leftDecPtr =
-      opus_decoder_create(sampleRate, 1, &error); // 采样率48000Hz，立体声2通道
+  OpusDecoder *leftDecPtr = opus_decoder_create(sampleRate, 1, &error);
   if(error != OPUS_OK) {
     return -1;
   }
-  // wrap
+  // wrap with unique_ptr
   auto leftDec = std::unique_ptr<OpusDecoder, void (*)(OpusDecoder *)>(
       leftDecPtr, &onOpusDecoderDelete);
   // right
@@ -80,7 +79,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
   if(error != OPUS_OK) {
     return -1;
   }
-  // wrap
+  // wrap with unique_ptr
   auto rightDec = std::unique_ptr<OpusDecoder, void (*)(OpusDecoder *)>(
       rightDecPtr, &onOpusDecoderDelete);
   for(int i = 0; i < frameNumber; i++) {
@@ -91,9 +90,10 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
     }
     // fill the pcm fuffer with 0
     std::fill(pcmLeft.begin(), pcmLeft.end(), 0);
-    // decode left
-    opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
-                pcmLeft.data(), pcmLeft.size(), 0);
+    // decode left. pcm frame will be all zero if failed. just ignore it
+    std::ignore =
+        opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
+                    pcmLeft.data(), pcmLeft.size(), 0);
 
     // right ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
@@ -102,9 +102,10 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
     }
     // fill the pcm fuffer with 0
     std::fill(pcmRight.begin(), pcmRight.end(), 0);
-    // decode right
-    opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
-                pcmRight.data(), pcmRight.size(), 0);
+    // decode right. pcm frame will be all zero if failed. just ignore it
+    std::ignore =
+        opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
+                    pcmRight.data(), pcmRight.size(), 0);
     // concat
     for(int j = 0; j < decodedFrameNumber; j++) {
       pcm[j * 2] = pcmLeft[j];
