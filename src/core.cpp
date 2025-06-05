@@ -44,22 +44,18 @@ void onOpusDecoderDelete(OpusDecoder *decoder) {
 int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
            std::istream &reader, uint32_t size, std::ostream &writer) {
   int pcmFrameSize =
-      channel * sampleRate * frameSizeMs * 2 / 1000; // 1280字节 640个uint16
+      channel * sampleRate * frameSizeMs * 2 / 1000; // 1280 bytes = 640 uint16
   int opusFrameSize = pcmFrameSize / frameRate;
   int opusChannelSize = opusFrameSize / 2;
   int frameNumber = size / opusFrameSize;
 
   int decodedFrameNumber = pcmFrameSize / 4;
 
-  // printf("%d\n", decodedFrameNumber);
-
-  std::vector<int16_t> pcmLeft(pcmFrameSize / 4); // 640字节 320个uint64
+  std::vector<int16_t> pcmLeft(pcmFrameSize / 4); // 640 bytes = 320 uint64
   std::vector<int16_t> pcmRight(pcmFrameSize / 4);
   std::vector<int16_t> pcm(pcmFrameSize / 2);
 
   std::vector<uint8_t> opusBuffer(opusChannelSize);
-
-  // int total = 0;
 
   // write header
   {
@@ -95,12 +91,9 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
     }
     // fill the pcm fuffer with 0
     std::fill(pcmLeft.begin(), pcmLeft.end(), 0);
-    // ignore the result
-    int ret=opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
-                          pcmLeft.data(), pcmLeft.size(), 0);
-    if(ret!=decodedFrameNumber){
-      printf("Unexpect left decode result: %d\n",ret);
-    }
+    // decode left
+    opus_decode(leftDec.get(), opusBuffer.data(), opusBuffer.size(),
+                pcmLeft.data(), pcmLeft.size(), 0);
 
     // right ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
@@ -109,12 +102,9 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
     }
     // fill the pcm fuffer with 0
     std::fill(pcmRight.begin(), pcmRight.end(), 0);
-    // ignore the result
-    ret=opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
-                      pcmRight.data(), pcmRight.size(), 0);
-    if(ret!=decodedFrameNumber){
-      printf("Unexpect right decode result: %d\n",ret);
-    }
+    // decode right
+    opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
+                pcmRight.data(), pcmRight.size(), 0);
     // concat
     for(int j = 0; j < decodedFrameNumber; j++) {
       pcm[j * 2] = pcmLeft[j];
