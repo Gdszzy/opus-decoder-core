@@ -51,7 +51,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
 
   int decodedFrameNumber = pcmFrameSize / 4;
 
-  std::vector<int16_t> pcmLeft(pcmFrameSize / 4); // 640 bytes = 320 uint64
+  std::vector<int16_t> pcmLeft(pcmFrameSize / 4); // 640 bytes = 320 uint16
   std::vector<int16_t> pcmRight(pcmFrameSize / 4);
   std::vector<int16_t> pcm(pcmFrameSize / 2);
 
