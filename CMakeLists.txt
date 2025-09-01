@@ -12,9 +12,6 @@ set(LINK_OPTIONS
     -Wl,--gc-sections
 )
 
-set(OPUS_X86_PRESUME_AVX2 on)
-set(OPUS_X86_PRESUME_SSE4_1 on)
-
 add_subdirectory(${CMAKE_SOURCE_DIR}/3rd/opus/)
 # configure libopus
 target_compile_options(opus PRIVATE -march=native)
