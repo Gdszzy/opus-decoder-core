@@ -2,6 +2,6 @@
 
 set -e
 
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --parallel 8
+cmake --preset default
+cmake --build --preset release
 strip build/decoder

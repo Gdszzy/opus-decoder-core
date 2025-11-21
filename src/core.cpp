@@ -1,7 +1,7 @@
 #include "core.h"
 #include "opus.h"
+#include <cstdint>
 #include <cstring>
-#include <functional>
 #include <memory>
 #include <vector>
 
@@ -10,7 +10,7 @@ using WavHeader = uint8_t[44];
 #define FILL_ARR(arr, ...)                                                     \
   {                                                                            \
     uint8_t values[] = {__VA_ARGS__};                                          \
-    for(size_t i = 0; i < sizeof(arr) / sizeof(arr[0]); ++i) {                 \
+    for (size_t i = 0; i < sizeof(arr) / sizeof(arr[0]); ++i) {                \
       arr[i] = values[i];                                                      \
     }                                                                          \
   }
@@ -68,7 +68,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
   int error;
   // left
   OpusDecoder *leftDecPtr = opus_decoder_create(sampleRate, 1, &error);
-  if(error != OPUS_OK) {
+  if (error != OPUS_OK) {
     return -1;
   }
   // wrap with unique_ptr
@@ -76,16 +76,16 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
       leftDecPtr, &onOpusDecoderDelete);
   // right
   OpusDecoder *rightDecPtr = opus_decoder_create(sampleRate, 1, &error);
-  if(error != OPUS_OK) {
+  if (error != OPUS_OK) {
     return -1;
   }
   // wrap with unique_ptr
   auto rightDec = std::unique_ptr<OpusDecoder, void (*)(OpusDecoder *)>(
       rightDecPtr, &onOpusDecoderDelete);
-  for(int i = 0; i < frameNumber; i++) {
+  for (int i = 0; i < frameNumber; i++) {
     // left ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
-    if(!reader) {
+    if (!reader) {
       return -2;
     }
     // fill the pcm fuffer with 0
@@ -97,7 +97,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
 
     // right ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
-    if(!reader) {
+    if (!reader) {
       return -2;
     }
     // fill the pcm fuffer with 0
@@ -107,7 +107,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
         opus_decode(rightDec.get(), opusBuffer.data(), opusBuffer.size(),
                     pcmRight.data(), pcmRight.size(), 0);
     // concat
-    for(int j = 0; j < decodedFrameNumber; j++) {
+    for (int j = 0; j < decodedFrameNumber; j++) {
       pcm[j * 2] = pcmLeft[j];
       pcm[j * 2 + 1] = pcmRight[j];
     }
