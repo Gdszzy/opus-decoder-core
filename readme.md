@@ -1,4 +1,4 @@
-## opus-decoder-go
+## opus-decoder-core
 
 本项目旨在直接调用 libopus 完成 opus 解码，并使用本地编译参数获得最大执行性能
 
