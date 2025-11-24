@@ -51,6 +51,12 @@ OPTIONS:
 ./make-native.sh
 ```
 
+如果需要临时给其他设备编译一下，可以临时禁用-march=native
+
+```shell
+DISABLE_MARCH_NATIVE=1 ./make-native.sh
+```
+
 ### 交叉编译
 
 目前支持交叉编译到 arm64，但推荐在目标平台执行本地编译可获得更高的性能

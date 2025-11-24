@@ -3,7 +3,8 @@ project(opus-decoder-core LANGUAGES C CXX)
 
 set(COMMON_COMPILE_OPTIONS "")
 
-if(CMAKE_CROSSCOMPILING)
+set(DISABLE_MARCH_NATIVE $ENV{DISABLE_MARCH_NATIVE})
+if(CMAKE_CROSSCOMPILING OR DISABLE_MARCH_NATIVE)
     message("Disable -march-native")
 else()
     string(APPEND COMMON_COMPILE_OPTIONS "-march=native")
