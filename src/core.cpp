@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <unistd.h>
 #include <vector>
 
 using WavHeader = uint8_t[44];
@@ -42,7 +43,7 @@ void onOpusDecoderDelete(OpusDecoder *decoder) {
 }
 
 int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
-           std::istream &reader, uint32_t size, std::ostream &writer) {
+           std::istream &reader, uint32_t size, bool raw_pcm, int out_fd) {
   int pcmFrameSize =
       channel * sampleRate * frameSizeMs * 2 / 1000; // 1280 bytes = 640 uint16
   int opusFrameSize = pcmFrameSize / frameRate;
@@ -58,11 +59,11 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
   std::vector<uint8_t> opusBuffer(opusChannelSize);
 
   // write header
-  {
+  if (!raw_pcm) {
     WavHeader header;
     createWavHeader(header, frameNumber * pcmFrameSize, channel, sampleRate,
                     16);
-    writer.write((char *)header, sizeof(header));
+    write(out_fd, (char *)header, sizeof(header));
   }
 
   int error;
@@ -111,7 +112,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
       pcm[j * 2] = pcmLeft[j];
       pcm[j * 2 + 1] = pcmRight[j];
     }
-    writer.write((char *)pcm.data(), pcmFrameSize);
+    write(out_fd, (char *)pcm.data(), pcmFrameSize);
   }
   return 0;
 }
