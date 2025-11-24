@@ -3,7 +3,7 @@ project(opus-decoder-core LANGUAGES C CXX)
 
 set(COMMON_COMPILE_OPTIONS "")
 
-if(NOT DEFINED ENV{CROSSCOMPILE})
+if(NOT DEFINED ENV{DISABLE_MARCH_NATIVE})
     string(APPEND COMMON_COMPILE_OPTIONS "-march=native")
     message("Enable -march-native")
 else()
