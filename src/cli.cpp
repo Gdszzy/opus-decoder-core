@@ -1,6 +1,5 @@
 #include "CLI/CLI.hpp"
 #include "core.h"
-#include <chrono>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
