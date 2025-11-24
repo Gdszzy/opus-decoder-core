@@ -3,11 +3,11 @@ project(opus-decoder-core LANGUAGES C CXX)
 
 set(COMMON_COMPILE_OPTIONS "")
 
-if(NOT DEFINED ENV{DISABLE_MARCH_NATIVE})
+if(CMAKE_CROSSCOMPILING)
+    message("Disable -march-native")
+else()
     string(APPEND COMMON_COMPILE_OPTIONS "-march=native")
     message("Enable -march-native")
-else()
-    message("Disable -march-native")
 endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rd/opus/)
