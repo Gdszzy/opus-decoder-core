@@ -2,6 +2,6 @@
 
 set -e
 
-cmake --preset native
-cmake --build --preset native-release
-llvm-strip build/Release/decoder
+cmake --preset native-release
+cmake --build build/release
+llvm-strip build/release/decoder
