@@ -13,28 +13,34 @@ Opus decoder cli
 
 OPTIONS:
   -h,     --help              Print this help message and exit
-  -s,     --source TEXT REQUIRED
-                              Source file
+[Option Group: input]
+  Input options
+  [Exactly 1 of the following options are required]
+
+
+OPTIONS:
+  -i TEXT                     Input from file
+          --is INT            Input from stdin. Need provide file length
 [Option Group: output]
   Output options
   [Exactly 1 of the following options are required]
 
 
 OPTIONS:
-  -o,     --output TEXT       Output file
-  -d                          Directly output to stdout
+  -o TEXT                     Output to file
+          --os                Output to stdout
 ```
 
 直接解码 opus 流为 wav 文件，建议输出到 tmpfs 挂载的目录以便降低 IO 开销
 
 ```bash
-./decoder -s input.opus -o output.wav
+./decoder -i input.opus -o output.wav
 ```
 
 解码同时调用 ffmpeg 编码为指定格式，由于解码和 ffmpeg 编码两个进程并行运行，可以获得最大吞吐性能
 
 ```bash
-./decoder -s input.opus -d | ffmpeg -i - output.mp3
+./decoder -i input.opus -os | ffmpeg -i - output.mp3
 ```
 
 ### 依赖

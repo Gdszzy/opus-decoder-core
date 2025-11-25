@@ -43,7 +43,7 @@ void onOpusDecoderDelete(OpusDecoder *decoder) {
 }
 
 int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
-           std::istream &reader, uint32_t size, int out_fd) {
+           std::istream &reader, uint32_t size, std::ostream &writer) {
   int pcmFrameSize =
       channel * sampleRate * frameSizeMs * 2 / 1000; // 1280 bytes = 640 uint16
   int opusFrameSize = pcmFrameSize / frameRate;
@@ -61,7 +61,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
   // write header
   WavHeader header;
   createWavHeader(header, frameNumber * pcmFrameSize, channel, sampleRate, 16);
-  write(out_fd, (char *)header, sizeof(header));
+  writer.write((char *)header, sizeof(header));
 
   int error;
   // left
@@ -109,7 +109,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
       pcm[j * 2] = pcmLeft[j];
       pcm[j * 2 + 1] = pcmRight[j];
     }
-    write(out_fd, (char *)pcm.data(), pcmFrameSize);
+    writer.write((char *)pcm.data(), pcmFrameSize);
   }
   return 0;
 }
