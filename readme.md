@@ -48,6 +48,7 @@ OPTIONS:
 - cmake
 - clang
 - git
+- ninja
 
 ### 本地编译
 
