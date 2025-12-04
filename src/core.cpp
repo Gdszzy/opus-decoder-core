@@ -3,7 +3,11 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#ifdef _WIN32
+#include <windows.h> 
+#else
 #include <unistd.h>
+#endif
 #include <vector>
 
 using WavHeader = uint8_t[44];
