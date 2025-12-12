@@ -3,7 +3,11 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#ifdef _WIN32
+#include <windows.h> 
+#else
 #include <unistd.h>
+#endif
 
 int main(int argc, char **argv) {
   CLI::App app{"Opus decoder cli"};
