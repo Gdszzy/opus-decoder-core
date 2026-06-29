@@ -1,5 +1,6 @@
 #include "core.h"
 #include "opus.h"
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -47,12 +48,12 @@ void onOpusDecoderDelete(OpusDecoder *decoder) {
 }
 
 int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
-           std::istream &reader, uint32_t size, std::ostream &writer) {
+           std::istream &reader, uint32_t size, std::ostream &writer,
+           bool writeWavHeader) {
   int pcmFrameSize =
       channel * sampleRate * frameSizeMs * 2 / 1000; // 1280 bytes = 640 uint16
   int opusFrameSize = pcmFrameSize / frameRate;
   int opusChannelSize = opusFrameSize / 2;
-  int frameNumber = size / opusFrameSize;
 
   int decodedFrameNumber = pcmFrameSize / 4;
 
@@ -62,10 +63,12 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
 
   std::vector<uint8_t> opusBuffer(opusChannelSize);
 
-  // write header
-  WavHeader header;
-  createWavHeader(header, frameNumber * pcmFrameSize, channel, sampleRate, 16);
-  writer.write((char *)header, sizeof(header));
+  if (writeWavHeader) {
+    int frameNumber = size / opusFrameSize;
+    WavHeader header;
+    createWavHeader(header, frameNumber * pcmFrameSize, channel, sampleRate, 16);
+    writer.write((char *)header, sizeof(header));
+  }
 
   int error;
   // left
@@ -84,10 +87,14 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
   // wrap with unique_ptr
   auto rightDec = std::unique_ptr<OpusDecoder, void (*)(OpusDecoder *)>(
       rightDecPtr, &onOpusDecoderDelete);
-  for (int i = 0; i < frameNumber; i++) {
+
+  while (true) {
     // left ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
-    if (!reader) {
+    if (reader.gcount() == 0 && reader.eof()) {
+      break;
+    }
+    if (reader.gcount() != opusChannelSize) {
       return -2;
     }
     // fill the pcm fuffer with 0
@@ -99,7 +106,7 @@ int decode(int channel, int sampleRate, int frameSizeMs, int frameRate,
 
     // right ===============================
     reader.read((char *)opusBuffer.data(), opusChannelSize);
-    if (!reader) {
+    if (reader.gcount() != opusChannelSize) {
       return -2;
     }
     // fill the pcm fuffer with 0

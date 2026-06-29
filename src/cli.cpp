@@ -1,5 +1,6 @@
 #include "CLI/CLI.hpp"
 #include "core.h"
+#include <cstdint>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -14,25 +15,34 @@ int main(int argc, char **argv) {
 
   std::string inputPath;
   std::string outputPath;
-  int stdinLength = 0;
-  bool use_stdout = false;
+  std::string outputFormat = "wav";
+  uint32_t inputSize = 0;
 
-  auto in_group =
-      app.add_option_group("input", "Input options")->require_option(1);
-  in_group->add_option("-i", inputPath, "Input from file");
-  in_group->add_option("--is", stdinLength,
-                       "Input from stdin. Need provide file length");
-
-  auto out_group =
-      app.add_option_group("output", "Output options")->require_option(1);
-  out_group->add_option("-o", outputPath, "Output to file");
-  out_group->add_flag("--os", use_stdout, "Output to stdout");
+  app.add_option("-i,--input", inputPath, "Input opus path, or '-' for stdin")
+      ->required();
+  app.add_option("-o,--output", outputPath, "Output path, or '-' for stdout")
+      ->required();
+  app.add_option("-f,--format", outputFormat, "Output format")
+      ->check(CLI::IsMember({"wav", "pcm"}))
+      ->capture_default_str();
+  auto input_size_option = app.add_option(
+      "--input-size", inputSize,
+      "Input size in bytes. Required for stdin input with wav output");
 
   CLI11_PARSE(app, argc, argv);
 
+  bool use_stdin = inputPath == "-";
+  bool use_stdout = outputPath == "-";
+  bool writeWavHeader = outputFormat == "wav";
+  if (use_stdin && writeWavHeader && input_size_option->count() == 0) {
+    std::cerr << "--input-size is required when reading stdin with wav output"
+              << std::endl;
+    return 1;
+  }
+
   std::istream *inputStream;
   std::ifstream inputFile;
-  if (stdinLength) {
+  if (use_stdin) {
     inputStream = &std::cin;
   } else {
     inputFile.open(inputPath, std::ios::binary);
@@ -57,15 +67,16 @@ int main(int argc, char **argv) {
   }
 
   std::streampos length = -1;
-  if (stdinLength) {
-    length = stdinLength;
+  if (use_stdin) {
+    length = inputSize;
   } else {
     inputFile.seekg(0, std::ios::end);
     length = inputFile.tellg();
     inputFile.seekg(0, std::ios::beg);
   }
 
-  int ret = decode(2, 16000, 20, 8, *inputStream, length, *outputStream);
+  int ret = decode(2, 16000, 20, 8, *inputStream, length, *outputStream,
+                   writeWavHeader);
   if (ret) {
     std::cerr << "Decode failed" << std::endl;
     return ret;

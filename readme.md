@@ -1,6 +1,6 @@
 ## opus-decoder-core
 
-本项目封装了 libopus 调用来实现解码工牌录音并输出wav
+本项目封装了 libopus 调用来实现解码工牌录音并输出 wav 或裸 PCM
 
 - ☑️ 一键编译脚本
 - ☑️ 支持本地CPU编译参数，完全释放设备性能
@@ -23,22 +23,13 @@ Opus decoder cli
 
 OPTIONS:
   -h,     --help              Print this help message and exit
-[Option Group: input]
-  Input options
-  [Exactly 1 of the following options are required]
-
-
-OPTIONS:
-  -i TEXT                     Input from file
-          --is INT            Input from stdin. Need provide file length
-[Option Group: output]
-  Output options
-  [Exactly 1 of the following options are required]
-
-
-OPTIONS:
-  -o TEXT                     Output to file
-          --os                Output to stdout
+  -i,     --input TEXT REQUIRED
+                              Input opus path, or '-' for stdin
+  -o,     --output TEXT REQUIRED
+                              Output path, or '-' for stdout
+  -f,     --format TEXT:{wav,pcm} [wav]
+                              Output format
+          --input-size UINT   Input size in bytes. Required for stdin input with wav output
 ```
 
 直接解码 opus 流为 wav 文件，建议输出到 tmpfs 挂载的目录以便降低 IO 开销
@@ -50,13 +41,19 @@ OPTIONS:
 使用标准输出流，结合ffmpeg开启双核编解码
 
 ```bash
-./decoder -i input.opus -os | ffmpeg -i - output.mp3
+./decoder -i input.opus -o - | ffmpeg -i - output.mp3
 ```
 
-使用标准输入流，实现流式解码
+使用标准输入流，输出 wav 时需要传入输入长度，以便生成正确的 wav 头部
 
 ```bash
-cat input.opus | ./decoder --is $(stat -c %s input.opus) -o output.wav
+cat input.opus | ./decoder -i - --input-size $(stat -c %s input.opus) -o output.wav
+```
+
+实时流式解码时可输出裸 PCM 数据，不写入 WAV 头部（s16le / 16kHz / 双声道）
+
+```bash
+cat input.opus | ./decoder -i - -o - --format pcm
 ```
 
 ### 编译
