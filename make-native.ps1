@@ -9,4 +9,4 @@ if (Get-Command "llvm-strip" -ErrorAction SilentlyContinue) {
     Write-Warning "llvm-strip command not found. Skipping optimization step."
 }
 
-Write-Host "--- Compilation completed successfully! ---"c
+Write-Host "--- Compilation completed successfully! ---"
